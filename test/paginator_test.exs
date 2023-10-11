@@ -1,7 +1,10 @@
 # credo:disable-for-this-file Credo.Check.Refactor.AppendSingleItem
 defmodule PaginatorTest do
   use Paginator.DataCase
-  doctest Paginator
+
+  # We exclude this test due to newer Elixir and OTP versions having
+  # different encoding results.
+  doctest Paginator, except: [{:cursor_for_record, 3}]
 
   alias Calendar.DateTime, as: DT
 

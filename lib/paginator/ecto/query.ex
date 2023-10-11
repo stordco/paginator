@@ -121,7 +121,7 @@ defmodule Paginator.Ecto.Query do
         {position, column}
 
       _ ->
-        inspected_alias = inspect(query.aliases)
+        inspected_alias = inspect(query.aliases, custom_options: [sort_maps: true])
 
         raise(
           ArgumentError,

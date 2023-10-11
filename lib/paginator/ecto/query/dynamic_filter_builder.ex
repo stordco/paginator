@@ -15,7 +15,7 @@ defmodule Paginator.Ecto.Query.DynamicFilterBuilder do
               entity_position: integer(),
               column: term(),
               value: term(),
-              next_filters: Ecto.Query.dynamic() | boolean()
+              next_filters: %Ecto.Query.DynamicExpr{} | boolean()
             }) :: term()
 
   @type sort_order ::
@@ -34,7 +34,7 @@ defmodule Paginator.Ecto.Query.DynamicFilterBuilder do
           entity_position: integer(),
           column: term(),
           value: term(),
-          next_filters: Ecto.Query.dynamic() | boolean()
+          next_filters: %Ecto.Query.DynamicExpr{} | boolean()
         }) :: term()
   def build!(input) do
     case Map.fetch(@dispatch_table, input.sort_order) do
