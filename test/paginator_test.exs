@@ -800,8 +800,8 @@ defmodule PaginatorTest do
     test "when custom total_count_primary_key_field", %{
       addresses: {_a1, a2, _a3}
     } do
+      # credo:disable-for-lines:9 /Pipe/
       %Page{metadata: metadata} =
-        # credo:disable-for-lines:8 /Pipe/
         from(a in Address, select: a)
         |> Repo.paginate(
           cursor_fields: [:city],
