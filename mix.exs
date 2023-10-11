@@ -1,25 +1,30 @@
 defmodule Paginator.Mixfile do
   use Mix.Project
 
-  @source_url "https://github.com/duffelhq/paginator"
+  @source_url "https://github.com/stordco/paginator"
   @version "1.2.0"
 
   def project do
     [
       app: :paginator,
       name: "Paginator",
+      description: "Cursor based pagination for Elixir Ecto",
       version: @version,
       elixir: "~> 1.5",
-      elixirc_options: [warnings_as_errors: System.get_env("CI") == "true"],
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      dialyzer: [
-        plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
-      ],
+      docs: docs(),
       package: package(),
-      docs: docs()
+      source_url: @source_url,
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.html": :test,
+        "coveralls.circle": :test
+      ]
     ]
   end
 
@@ -33,26 +38,28 @@ defmodule Paginator.Mixfile do
   defp deps do
     [
       {:calendar, "~> 1.0.0", only: :test},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
-      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.18", only: :test},
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
       {:ex_machina, "~> 2.1", only: :test},
-      {:inch_ex, "~> 2.0", only: [:dev, :test]},
       {:postgrex, "~> 0.13", optional: true},
-      {:plug_crypto, "~> 1.2.0"}
+      {:plug_crypto, "~> 2.0.0"}
     ]
   end
 
   defp package do
     [
       description: "Cursor based pagination for Elixir Ecto.",
-      maintainers: ["Steve Domin"],
+      maintainers: ["Steve Domin", "Stord, Inc."],
       licenses: ["MIT"],
       links: %{
-        "Changelog" => "https://hexdocs.pm/paginator/changelog.html",
+        "Changelog" => "https://github.com/stordco/paginator/releases",
         "GitHub" => @source_url
-      }
+      },
+      organization: "stord"
     ]
   end
 
@@ -66,8 +73,7 @@ defmodule Paginator.Mixfile do
       main: "readme",
       canonical: "http://hexdocs.pm/paginator",
       source_url: @source_url,
-      source_ref: "v#{@version}",
-      formatters: ["html"]
+      source_ref: "v#{@version}"
     ]
   end
 end
