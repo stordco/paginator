@@ -801,8 +801,8 @@ defmodule PaginatorTest do
       addresses: {_a1, a2, _a3}
     } do
       %Page{metadata: metadata} =
-        [a in Address, select: a]
-        |> from()
+        # credo:disable-for-lines:8 /Pipe/
+        from(a in Address, select: a)
         |> Repo.paginate(
           cursor_fields: [:city],
           sort_direction: :asc,
