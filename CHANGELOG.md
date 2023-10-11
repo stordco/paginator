@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0](https://github.com/stordco/paginator/compare/v1.2.0...v1.3.0) (2023-10-11)
+
+
+### Features
+
+* Add support for all asc/desc sorting order combinations ([#136](https://github.com/stordco/paginator/issues/136)) ([9e5b1d2](https://github.com/stordco/paginator/commit/9e5b1d21b71797966ec2be5e6eea8d628bb24dd2))
+
+
+### Miscellaneous
+
+* Setup common-config-elixir ([#1](https://github.com/stordco/paginator/issues/1)) ([af8424d](https://github.com/stordco/paginator/commit/af8424dc9fb7d227b0d13b2bbc1c5380dcb7f6ac))
+
 ## v1.2.0 - 2022-10-27
 * Make config raise specific domain specific error ([#176](https://github.com/duffelhq/paginator/pull/176))
 * Update package dependencies

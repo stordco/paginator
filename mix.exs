@@ -2,7 +2,7 @@ defmodule Paginator.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/stordco/paginator"
-  @version "1.2.0"
+  @version "1.3.0"
 
   def project do
     [

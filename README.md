@@ -62,7 +62,7 @@ Add `:paginator` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:paginator, "~> 1.2.0", organization: "stord"}
+    {:paginator, "~> 1.3.0", organization: "stord"}
   ]
 end
 ```
