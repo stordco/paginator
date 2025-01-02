@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - code-freeze/**
   workflow_dispatch:
 
 concurrency:
@@ -18,11 +19,15 @@ jobs:
       url: https://paginator.stord.engineering
 
     permissions:
+      actions: read
       contents: read
       id-token: write
       pages: write
 
     runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
 
     steps:
       - name: Checkout
@@ -36,16 +41,17 @@ jobs:
           oban-fingerprint: ${{ secrets.OBAN_KEY_FINGERPRINT }}
           oban-token: ${{ secrets.OBAN_LICENSE_KEY }}
 
-      - name: Build
+      - name: Docs
         run: mix docs
 
       - name: Set CNAME
         run: echo "paginator.stord.engineering" > ./doc/CNAME
 
       - name: Upload Artifacts
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./doc
 
       - name: Deploy
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
+

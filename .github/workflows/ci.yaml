@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - main
+      - code-freeze/**
   workflow_call:
     secrets:
       CI_SERVICE_KEY:
@@ -27,7 +28,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  Changed:
+    name: Changed Files
+    runs-on: ubuntu-latest
+
+    outputs:
+      database: ${{ steps.changed.outputs.database_any_changed }}
+      docker: ${{ steps.changed.outputs.docker_any_changed }}
+      elixir: ${{ steps.changed.outputs.elixir_any_changed }}
+      helm: ${{ steps.changed.outputs.helm_any_changed }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - id: changed
+        name: Get Changed Files
+        uses: tj-actions/changed-files@v44
+        with:
+          files_yaml: |
+            database:
+              - '.github/workflows/ci.yaml'
+              - 'priv/*repo/**'
+            docker:
+              - '.github/workflows/ci.yaml'
+              - 'Dockerfile'
+            documentation:
+              - 'docs/**'
+              - 'priv/documentation/**'
+              - '**.ex'
+              - '**.md'
+            elixir:
+              - '.github/workflows/ci.yaml'
+              - '.tool-versions'
+              - 'priv/**'
+              - '**.ex'
+              - '**.exs'
+              - '**.heex'
+            helm:
+              - '.github/workflows/ci.yaml'
+              - '.github/workflows/staging.yaml'
+              - '.github/workflows/production.yaml'
+              - 'helm/**'
+
   Credo:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') && needs.Changed.outputs.elixir == 'true' }}
+    needs: [Changed]
     runs-on: ubuntu-latest
 
     steps:
@@ -46,7 +94,12 @@ jobs:
         run: mix credo --strict
 
   Dependencies:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') && needs.Changed.outputs.elixir == 'true' }}
+    needs: [Changed]
     runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
 
     steps:
       - name: Checkout
@@ -64,6 +117,8 @@ jobs:
         run: mix deps.unlock --check-unused
 
   Dialyzer:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') && needs.Changed.outputs.elixir == 'true' }}
+    needs: [Changed]
     runs-on: ubuntu-latest
 
     steps:
@@ -82,6 +137,8 @@ jobs:
         run: mix dialyzer --format github
 
   Documentation:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') && needs.Changed.outputs.documentation == 'true' }}
+    needs: [Changed]
     runs-on: ubuntu-latest
 
     steps:
@@ -100,6 +157,8 @@ jobs:
         run: mix docs
 
   Format:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') && needs.Changed.outputs.elixir == 'true' }}
+    needs: [Changed]
     runs-on: ubuntu-latest
 
     steps:
@@ -116,6 +175,39 @@ jobs:
 
       - name: Format
         run: mix format --check-formatted
+
+  Seed:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') && needs.Changed.outputs.database == 'true' }}
+    needs: [Changed]
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+
+    services:
+      postgres:
+        image: postgres:14-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_INITDB_ARGS: "--nosync"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: stordco/actions-elixir/setup@v1
+        with:
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          hex-token: ${{ secrets.HEX_API_KEY }}
+          oban-fingerprint: ${{ secrets.OBAN_KEY_FINGERPRINT }}
+          oban-token: ${{ secrets.OBAN_LICENSE_KEY }}
+
+      - name: Seed
+        run: mix ecto.setup
 
   Test:
     name: Test (Elixir ${{ matrix.versions.elixir }} OTP ${{ matrix.versions.otp }})
@@ -167,3 +259,35 @@ jobs:
             otp: 25
           - elixir: 1.15
             otp: 26
+
+  Trivy_Filesystem:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches') }}
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: stordco/actions-elixir/setup@v1
+        with:
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          hex-token: ${{ secrets.HEX_API_KEY }}
+          oban-fingerprint: ${{ secrets.OBAN_KEY_FINGERPRINT }}
+          oban-token: ${{ secrets.OBAN_LICENSE_KEY }}
+
+      - name: Trivy Scan
+        uses: stordco/actions-trivy@v1
+        with:
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          scan-type: fs
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel-id: ${{ secrets.SLACK_SECURITY_ALERTS }}
+          update-db: false
+
